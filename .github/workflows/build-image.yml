@@ -15,7 +15,7 @@ jobs:
     
     container:
       image: ghcr.io/net-architect-cloud/docker-libguestfs-tools:latest
-      options: --privileged --device=/dev/kvm --volume /tmp:/shared --volume /lib/modules:/lib/modules:ro
+      options: --privileged --device=/dev/kvm --volume /tmp:/shared --volume /lib/modules:/lib/modules:ro --volume /boot:/boot:ro
     
     steps:
       - name: Load NBD module
