@@ -1,0 +1,14 @@
+cloud-init
+sudo
+bash
+curl
+wget
+nano
+htop
+rsync
+chrony
+less
+logrotate
+e2fsprogs-extra
+openssh
+ssmtp

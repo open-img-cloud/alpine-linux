@@ -33,6 +33,10 @@ jobs:
               --packages "$(cat config/packages)" \
               --script-chroot \
               alpine-${{ env.version }}-x86_64-tmp.qcow2 -- config/configure.sh
+          virt-customize -a alpine-${{ env.version }}-x86_64-tmp.qcow2 \
+            --run-command 'apk update' \
+            --run-command 'apk upgrade' \
+            --copy-in config/cloud.cfg:/etc/cloud/
  
       - name: Sysprep & Sparsify image
         run: |
