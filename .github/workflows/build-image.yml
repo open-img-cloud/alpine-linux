@@ -36,6 +36,9 @@ jobs:
               --packages "$(cat config/packages)" \
               --script-chroot \
               alpine-${{ env.version }}-x86_64-tmp.qcow2 -- config/configure.sh
+
+      - name: Customize image
+        run: |
           virt-customize -a alpine-${{ env.version }}-x86_64-tmp.qcow2 \
             --run-command 'apk update' \
             --run-command 'apk upgrade' \
