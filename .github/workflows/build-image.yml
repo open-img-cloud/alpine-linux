@@ -18,6 +18,10 @@ jobs:
       options: --privileged --device=/dev/kvm --volume /tmp:/shared --volume /lib/modules:/lib/modules:ro
     
     steps:
+      - name: Load NBD module
+        run: modprobe nbd max_part=16 
+    
+    steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
