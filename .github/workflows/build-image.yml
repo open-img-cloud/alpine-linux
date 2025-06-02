@@ -15,7 +15,7 @@ jobs:
     
     container:
       image: ghcr.io/net-architect-cloud/docker-libguestfs-tools:latest
-      options: --device=/dev/kvm --volume /tmp:/shared
+      options: --privileged --device=/dev/kvm --volume /tmp:/shared --volume /lib/modules:/lib/modules:ro
     
     steps:
       - name: Checkout code
