@@ -39,7 +39,7 @@ jobs:
 
       - name: Customize image
         run: |
-          virt-customize -a alpine-${{ env.version }}-x86_64-tmp.qcow2 \
+          virt-customize -v -x -a alpine-${{ env.version }}-x86_64-tmp.qcow2 \
             --run-command 'apk update' \
             --run-command 'apk upgrade' \
             --copy-in config/cloud.cfg:/etc/cloud/
