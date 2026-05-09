@@ -42,12 +42,13 @@ echo "[customize] config: $CONFIG_DIR"
 # the upstream kernel cmdline; we drop our /etc/default/grub override
 # rather than risk a half-applied dual-bootloader config.
 virt-customize -a "$QCOW2" \
-  --run-command 'apk add --no-cache qemu-guest-agent' \
+  --run-command 'apk add --no-cache qemu-guest-agent dhcpcd' \
   --copy-in "${CONFIG_DIR}/cloud.cfg:/etc/cloud/" \
   --mkdir /usr/local/sbin \
   --copy-in "${CONFIG_DIR}/serial-config.sh:/usr/local/sbin/" \
   --run-command 'chmod +x /usr/local/sbin/serial-config.sh && /usr/local/sbin/serial-config.sh' \
   --copy-in "${CONFIG_DIR}/interfaces:/etc/network/" \
+  --run-command 'rc-update add dhcpcd boot' \
   --run-command 'rc-update add sshd default' \
   --run-command 'rc-update add qemu-guest-agent default' \
   --run-command 'rm -rf /var/cache/apk/* /tmp/* /var/tmp/*'
