@@ -42,7 +42,7 @@ echo "[customize] config: $CONFIG_DIR"
 # the upstream kernel cmdline; we drop our /etc/default/grub override
 # rather than risk a half-applied dual-bootloader config.
 virt-customize -a "$QCOW2" \
-  --run-command 'apk add --no-cache qemu-guest-agent dhcpcd' \
+  --run-command 'apk add --no-cache qemu-guest-agent dhcpcd openssh-server' \
   --copy-in "${CONFIG_DIR}/cloud.cfg:/etc/cloud/" \
   --mkdir /usr/local/sbin \
   --copy-in "${CONFIG_DIR}/serial-config.sh:/usr/local/sbin/" \
@@ -51,6 +51,8 @@ virt-customize -a "$QCOW2" \
   --run-command 'rc-update add dhcpcd boot' \
   --run-command 'rc-update add sshd default' \
   --run-command 'rc-update add qemu-guest-agent default' \
+  --run-command 'echo "=== /etc/runlevels/default/ ==="; ls -la /etc/runlevels/default/' \
+  --run-command 'echo "=== /etc/runlevels/boot/ ==="; ls -la /etc/runlevels/boot/' \
   --run-command 'rm -rf /var/cache/apk/* /tmp/* /var/tmp/*'
 
 echo "[customize] done"
