@@ -1,0 +1,68 @@
+name: Build & publish image
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Override version (otherwise derived from tag, falling back to VERSION file)'
+        required: false
+      publish:
+        description: 'If false, skip upload + CF purge (PR / dry-run validation)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write   # cosign keyless via GitHub OIDC
+
+jobs:
+  resolve-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+      - id: v
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "${{ inputs.version }}" ]]; then
+            v="${{ inputs.version }}"
+          elif [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            v="${GITHUB_REF#refs/tags/v}"
+          elif [[ -f VERSION ]]; then
+            v=$(tr -d '[:space:]' < VERSION)
+          else
+            echo "::error::no version provided and no VERSION file found"
+            exit 1
+          fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "Resolved version: $v"
+
+  build:
+    needs: resolve-version
+    name: Build ${{ matrix.firmware }}
+    strategy:
+      fail-fast: false
+      matrix:
+        firmware: [bios, uefi]
+    uses: open-img-cloud/.github/.github/workflows/build-libguestfs-image.yml@main
+    with:
+      os_name: alpine-linux
+      version: ${{ needs.resolve-version.outputs.version }}
+      variant: ${{ matrix.firmware }}   # avoids MANIFEST/SHA256SUMS collision between bios and uefi jobs
+      output_filename: 'alpine-{version}-${{ matrix.firmware }}-x86_64.qcow2'
+      # Alpine publishes versioned cloud images at /alpine/latest-stable/releases/cloud/.
+      # Filenames embed the firmware (bios|uefi) and the cloudinit flavor — see
+      # https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/cloud/
+      upstream_url: 'https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/cloud/nocloud_alpine-${{ needs.resolve-version.outputs.version }}-x86_64-${{ matrix.firmware }}-cloudinit-r0.qcow2'
+      decompress: none
+      customize_script: build/customize.sh
+      run_sysprep: true
+      sparsify_compress: true
+      publish: ${{ inputs.publish == true || github.event_name == 'push' }}
+      sync_latest: true
+    secrets: inherit

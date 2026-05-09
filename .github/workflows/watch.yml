@@ -1,0 +1,16 @@
+name: Watch upstream
+
+on:
+  schedule:
+    - cron: '23 6 * * *'   # daily 06:23 UTC, ~7-8am Europe/Zurich (offset from alpaquita to spread load)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  watch:
+    uses: open-img-cloud/.github/.github/workflows/upstream-watch.yml@main
+    with:
+      os_name: alpine-linux
