@@ -47,6 +47,7 @@ virt-customize -a "$QCOW2" \
   --mkdir /usr/local/sbin \
   --copy-in "${CONFIG_DIR}/serial-config.sh:/usr/local/sbin/" \
   --run-command 'chmod +x /usr/local/sbin/serial-config.sh && /usr/local/sbin/serial-config.sh' \
+  --run-command 'rc-update add sshd default' \
   --run-command 'rc-update add qemu-guest-agent default' \
   --run-command 'rm -rf /var/cache/apk/* /tmp/* /var/tmp/*'
 
