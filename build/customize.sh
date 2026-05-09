@@ -28,19 +28,25 @@ fi
 echo "[customize] target: $QCOW2"
 echo "[customize] config: $CONFIG_DIR"
 
-# NOTE: Alpine isn't always recognised by libguestfs OS inspection for
-# `--install` — use `--run-command 'apk add ...'` to be safe across
-# upstream image revisions.
+# NOTE: Alpine cloud images ship with a tightly-sized rootfs — a full
+# `apk upgrade` pulls a new kernel (~70 MB) and fails with "No space
+# left on device". We skip upgrade at build time (alpaquita-style):
+# upstream point releases cover security patches via watch.yml bumping
+# VERSION daily, and consumers can `apk upgrade` post-deploy if they
+# need fresher patches mid-release.
+#
+# `apk add qemu-guest-agent` is small (~3 MB) and fits comfortably.
+#
+# We do NOT touch the bootloader: Alpine cloud images use `extlinux`
+# (BIOS) or a GRUB stub (UEFI). The serial console is already wired in
+# the upstream kernel cmdline; we drop our /etc/default/grub override
+# rather than risk a half-applied dual-bootloader config.
 virt-customize -a "$QCOW2" \
-  --run-command 'apk update' \
-  --run-command 'apk upgrade' \
-  --run-command 'apk add qemu-guest-agent' \
+  --run-command 'apk add --no-cache qemu-guest-agent' \
   --copy-in "${CONFIG_DIR}/cloud.cfg:/etc/cloud/" \
-  --copy-in "${CONFIG_DIR}/grub:/etc/default/" \
   --mkdir /usr/local/sbin \
   --copy-in "${CONFIG_DIR}/serial-config.sh:/usr/local/sbin/" \
   --run-command 'chmod +x /usr/local/sbin/serial-config.sh && /usr/local/sbin/serial-config.sh' \
-  --run-command 'if command -v grub-mkconfig >/dev/null 2>&1; then grub-mkconfig -o /boot/grub/grub.cfg; fi' \
   --run-command 'rc-update add qemu-guest-agent default' \
   --run-command 'rm -rf /var/cache/apk/* /tmp/* /var/tmp/*'
 
