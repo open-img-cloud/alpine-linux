@@ -41,9 +41,13 @@ echo "[customize] config: $CONFIG_DIR"
 # (BIOS) or a GRUB stub (UEFI). The serial console is already wired in
 # the upstream kernel cmdline; we drop our /etc/default/grub override
 # rather than risk a half-applied dual-bootloader config.
+# Org-wide cloud-init policy (datasource_list, disable_root, ssh_pwauth,
+# mount_default_fields) is now injected by the reusable workflow via
+# `templates/cloud.cfg.d/99_oic-policy.cfg` AFTER this script runs. Cloud-init
+# merges the drop-in with the upstream Alpine cloud-init package's cloud.cfg,
+# so we no longer maintain a full-replacement cloud.cfg here.
 virt-customize -a "$QCOW2" \
   --run-command 'apk add --no-cache qemu-guest-agent' \
-  --copy-in "${CONFIG_DIR}/cloud.cfg:/etc/cloud/" \
   --mkdir /usr/local/sbin \
   --copy-in "${CONFIG_DIR}/serial-config.sh:/usr/local/sbin/" \
   --run-command 'chmod +x /usr/local/sbin/serial-config.sh && /usr/local/sbin/serial-config.sh' \
