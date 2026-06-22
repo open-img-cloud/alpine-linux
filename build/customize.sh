@@ -3,17 +3,19 @@
 # Receives the qcow2 path as $1. Runs inside the stackopshq builder
 # container with /dev/kvm exposed.
 #
-# Alpine cloud images (the `nocloud_*-cloudinit-*` variant) ship with
+# Alpine cloud images (the `generic_*-cloudinit-*` variant) ship with
 # cloud-init, openssh, and a default user already configured. Our job is
 # to:
-#   - swap the datasource_list to OpenStack + ConfigDrive (no NoCloud /
-#     no Ec2) so the image matches the openimages.cloud convention
-#   - add qemu-guest-agent (not in the upstream image)
+#   - add qemu-guest-agent (not in the upstream image) + enable at boot
 #   - wire the serial console (so cloud / hypervisor consoles work)
-#   - apk upgrade for the latest patch level at release time
+#   - purge the apk cache + transient files
 #
 # We do NOT install cloud-init — it's already there.
 # We do NOT install openssh-server — it's already there.
+# We do NOT pin the cloud-init datasource_list here — the org reusable
+#   workflow injects that policy via a cloud.cfg.d drop-in after this
+#   script runs (see the note above the virt-customize call).
+# We do NOT `apk upgrade` at build time — see the note below.
 
 set -euo pipefail
 

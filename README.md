@@ -26,7 +26,7 @@
 ## About
 
 This repo builds [Alpine Linux][alpine] cloud images on top of the
-upstream `nocloud_alpine-*-cloudinit-r0.qcow2` artifacts published at
+upstream `generic_alpine-*-cloudinit-r0.qcow2` artifacts published at
 [dl-cdn.alpinelinux.org/alpine/latest-stable/releases/cloud/][upstream]
 and customises them via `virt-customize` for OpenStack-style
 infrastructures. Both **BIOS** (SeaBIOS) and **UEFI** (OVMF) firmware
@@ -46,7 +46,9 @@ Customisations applied to the upstream rootfs:
   image)
 - **Serial console** wired (`ttyS0,115200n8`) for cloud / hypervisor
   consoles, including `ttyS0` in `/etc/securetty`
-- **`apk update && upgrade`** at build time, `/var/cache/apk` purged after
+- **APK cache and transient files purged** after customisation (no
+  `apk upgrade` at build time — the cloud rootfs is tightly sized;
+  patch level tracks upstream point releases via `watch.yml`)
 - **`virt-sysprep`** to clean transient state, then `virt-sparsify --compress`
 
 Each release publishes:
@@ -161,8 +163,6 @@ build/
   customize.sh                   virt-customize hook (qcow2 path as $1)
   detect-upstream.sh             prints latest upstream semver (highest in cloud/ listing)
   config/
-    cloud.cfg                    cloud-init config copied to /etc/cloud/
-    grub                         GRUB defaults with serial console
     serial-config.sh             enables ttyS0 in inittab + securetty
 .github/workflows/
   release.yml                    calls build-libguestfs-image.yml on tag push
