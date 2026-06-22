@@ -58,7 +58,9 @@ jobs:
       # Alpine publishes versioned cloud images at /alpine/latest-stable/releases/cloud/.
       # Filenames embed the firmware (bios|uefi) and the cloudinit flavor — see
       # https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/cloud/
-      upstream_url: 'https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/cloud/nocloud_alpine-${{ needs.resolve-version.outputs.version }}-x86_64-${{ matrix.firmware }}-cloudinit-r0.qcow2'
+      # NB: upstream renamed the prefix `nocloud_` -> `generic_` around 3.24;
+      # we track the plain `cloudinit-r0` flavor (not `tiny`/`metal`).
+      upstream_url: 'https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/cloud/generic_alpine-${{ needs.resolve-version.outputs.version }}-x86_64-${{ matrix.firmware }}-cloudinit-r0.qcow2'
       decompress: none
       customize_script: build/customize.sh
       run_sysprep: true
