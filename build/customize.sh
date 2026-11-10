@@ -10,12 +10,12 @@
 #   - wire the serial console (so cloud / hypervisor consoles work)
 #   - purge the apk cache + transient files
 #
-# We do NOT install cloud-init — it's already there.
-# We do NOT install openssh-server — it's already there.
-# We do NOT pin the cloud-init datasource_list here — the org reusable
+# We do NOT install cloud-init: it's already there.
+# We do NOT install openssh-server: it's already there.
+# We do NOT pin the cloud-init datasource_list here: the org reusable
 #   workflow injects that policy via a cloud.cfg.d drop-in after this
 #   script runs (see the note above the virt-customize call).
-# We do NOT `apk upgrade` at build time — see the note below.
+# We do NOT `apk upgrade` at build time: see the note below.
 
 set -euo pipefail
 
@@ -30,7 +30,7 @@ fi
 echo "[customize] target: $QCOW2"
 echo "[customize] config: $CONFIG_DIR"
 
-# NOTE: Alpine cloud images ship with a tightly-sized rootfs — a full
+# NOTE: Alpine cloud images ship with a tightly-sized rootfs: a full
 # `apk upgrade` pulls a new kernel (~70 MB) and fails with "No space
 # left on device". We skip upgrade at build time (alpaquita-style):
 # upstream point releases cover security patches via watch.yml bumping
