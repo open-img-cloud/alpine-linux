@@ -5,15 +5,15 @@
 #   https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/cloud/
 # with filenames `generic_alpine-X.Y.Z-x86_64-{bios,uefi}-cloudinit-r0.qcow2`.
 # (Upstream renamed the prefix from `nocloud_` to `generic_` around the
-# 3.24 cycle — the directory also carries `*-tiny-*` and `*-metal-*`
+# 3.24 cycle: the directory also carries `*-tiny-*` and `*-metal-*`
 # flavors we deliberately ignore; we track the plain `cloudinit-r0`.)
 # `latest-stable` redirects to the current stable branch (e.g. v3.23) but the
-# directory contains every minor release built for that branch — we pick the
+# directory contains every minor release built for that branch: we pick the
 # highest semver match on the BIOS variant (UEFI follows the same version).
 #
 # Format: X.Y.Z (semver). Git tag: v<VERSION>.
 #
-# Runs in the upstream-watch reusable workflow (no KVM needed) — keep it
+# Runs in the upstream-watch reusable workflow (no KVM needed): keep it
 # portable bash + curl + GNU sort/grep only.
 
 set -euo pipefail
