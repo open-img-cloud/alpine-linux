@@ -61,6 +61,7 @@ jobs:
       # NB: upstream renamed the prefix `nocloud_` -> `generic_` around 3.24;
       # we track the plain `cloudinit-r0` flavor (not `tiny`/`metal`).
       upstream_url: 'https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/cloud/generic_alpine-${{ needs.resolve-version.outputs.version }}-x86_64-${{ matrix.firmware }}-cloudinit-r0.qcow2'
+      upstream_checksum_url: 'https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/cloud/generic_alpine-${{ needs.resolve-version.outputs.version }}-x86_64-${{ matrix.firmware }}-cloudinit-r0.qcow2.sha512'
       decompress: none
       customize_script: build/customize.sh
       run_sysprep: true
