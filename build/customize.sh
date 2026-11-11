@@ -49,6 +49,9 @@ echo "[customize] config: $CONFIG_DIR"
 # merges the drop-in with the upstream Alpine cloud-init package's cloud.cfg,
 # so we no longer maintain a full-replacement cloud.cfg here.
 virt-customize -a "$QCOW2" \
+  --mkdir /etc/ssh/sshd_config.d \
+  --copy-in "${CONFIG_DIR}/50-oic.conf:/etc/ssh/sshd_config.d/" \
+  --run-command 'grep -q "^Include /etc/ssh/sshd_config.d/" /etc/ssh/sshd_config || sed -i "1i Include /etc/ssh/sshd_config.d/*.conf" /etc/ssh/sshd_config' \
   --run-command 'apk add --no-cache qemu-guest-agent' \
   --mkdir /usr/local/sbin \
   --copy-in "${CONFIG_DIR}/serial-config.sh:/usr/local/sbin/" \
