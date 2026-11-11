@@ -39,6 +39,14 @@ echo "[customize] config: $CONFIG_DIR"
 #
 # `apk add qemu-guest-agent` is small (~3 MB) and fits comfortably.
 #
+# IPv6: dhcpcd ships "slaac private", which also gives the interface a
+# private (RFC 7217) link-local address. On OpenStack, Neutron's port
+# security only allows the MAC-derived link-local address and its
+# DHCPv6 server (dnsmasq) finds the port from it: with a private one the
+# router solicitations go unanswered and DHCPv6 answers "no addresses
+# available". "slaac hwaddr" keeps the EUI-64 link-local address, and the
+# instance gets the IPv6 address Neutron assigned to its port.
+#
 # We do NOT touch the bootloader: Alpine cloud images use `extlinux`
 # (BIOS) or a GRUB stub (UEFI). The serial console is already wired in
 # the upstream kernel cmdline; we drop our /etc/default/grub override
@@ -49,6 +57,7 @@ echo "[customize] config: $CONFIG_DIR"
 # merges the drop-in with the upstream Alpine cloud-init package's cloud.cfg,
 # so we no longer maintain a full-replacement cloud.cfg here.
 virt-customize -a "$QCOW2" \
+  --run-command 'sed -i "s/^slaac private/slaac hwaddr/" /etc/dhcpcd.conf && grep -q "^slaac hwaddr" /etc/dhcpcd.conf' \
   --mkdir /etc/ssh/sshd_config.d \
   --copy-in "${CONFIG_DIR}/50-oic.conf:/etc/ssh/sshd_config.d/" \
   --run-command 'grep -q "^Include /etc/ssh/sshd_config.d/" /etc/ssh/sshd_config || sed -i "1i Include /etc/ssh/sshd_config.d/*.conf" /etc/ssh/sshd_config' \
