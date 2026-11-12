@@ -1,206 +1,140 @@
-<div id="top"></div>
+<p align="center">
+  <a href="https://openimages.cloud/images/alpine-linux/">
+    <img src="https://openimages.cloud/img/og/alpine-linux.png" alt="Alpine Linux cloud image for OpenStack and Proxmox" width="720">
+  </a>
+</p>
 
-<!-- PROJECT SHIELDS -->
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![GPL-2.0 License][license-shield]][license-url]
+<p align="center">
+  <a href="https://openimages.cloud/images/alpine-linux/"><img alt="Latest version (BIOS)" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fimages.openimages.cloud%2Falpine-linux%2Flatest%2FMANIFEST-bios.json&query=%24.version&label=latest%20bios&color=2459c4&cacheSeconds=3600"></a>
+  <a href="https://openimages.cloud/images/alpine-linux/"><img alt="Latest version (UEFI)" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fimages.openimages.cloud%2Falpine-linux%2Flatest%2FMANIFEST-uefi.json&query=%24.version&label=latest%20uefi&color=2459c4&cacheSeconds=3600"></a>
+  <a href="https://github.com/open-img-cloud/alpine-linux/actions/workflows/release.yml"><img alt="Release" src="https://github.com/open-img-cloud/alpine-linux/actions/workflows/release.yml/badge.svg"></a>
+  <a href="https://openimages.cloud/verify/"><img alt="Signed with Sigstore cosign" src="https://img.shields.io/badge/signed-Sigstore%20cosign-2459c4"></a>
+  <a href="https://openimages.cloud/quality/"><img alt="Boot-tested on OpenStack" src="https://img.shields.io/badge/boot--tested-OpenStack-2459c4"></a>
+  <a href="LICENSE"><img alt="License GPL-2.0" src="https://img.shields.io/badge/license-GPL--2.0-555"></a>
+</p>
 
-<!-- PROJECT LOGO -->
-<br />
-<div align="center">
+<p align="center">
+  <a href="https://openimages.cloud/images/alpine-linux/"><b>Catalog page</b></a> ·
+  <a href="https://images.openimages.cloud/alpine-linux/latest/">Download</a> ·
+  <a href="https://openimages.cloud/verify/">Verify</a> ·
+  <a href="https://github.com/open-img-cloud/docs">Documentation</a> ·
+  <a href="https://github.com/open-img-cloud/alpine-linux/issues">Report an issue</a>
+</p>
 
-<h3 align="center">Alpine Linux Cloud Images</h3>
+Alpine Linux cloud image (qcow2) for **OpenStack** and **Proxmox**: the official Alpine
+`generic` cloud-init image, verified, made ready for both clouds with the same rules as every
+[openimages.cloud](https://openimages.cloud) image, signed with Sigstore cosign and boot-tested
+on a real OpenStack before it is published. Two firmware variants are built from each release.
 
-  <p align="center">
-    Cloud-init-ready, signed Alpine Linux images for OpenStack and Proxmox
-    <br />
-    <br />
-    <a href="https://github.com/open-img-cloud/alpine-linux/issues">Report a bug</a>
-    ·
-    <a href="https://github.com/open-img-cloud/alpine-linux/issues">Request a feature</a>
-  </p>
-</div>
+## At a glance
 
-## About
+| | |
+|---|---|
+| **Upstream** | [Alpine Linux](https://www.alpinelinux.org/) `generic_alpine-<version>-x86_64-<firmware>-cloudinit-r0.qcow2` from [dl-cdn.alpinelinux.org](https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/cloud/), checked against its `.sha512` |
+| **Default user** | `alpine`, SSH key only, passwordless `sudo` |
+| **Variants** | `bios`: legacy boot, works on any hypervisor. `uefi`: needs `hw_firmware_type=uefi` on OpenStack, OVMF on Proxmox |
+| **Format** | qcow2, x86_64, root filesystem grown to the disk at first boot |
+| **Version** | the Alpine point release, `X.Y.Z`, e.g. `3.24.1`; one manifest per variant, `MANIFEST-bios.json` and `MANIFEST-uefi.json` ([all versions](https://images.openimages.cloud/alpine-linux/versions.json)) |
+| **Support** | follows the Alpine `latest-stable` branch: each new point release becomes a new image |
 
-This repo builds [Alpine Linux][alpine] cloud images on top of the
-upstream `generic_alpine-*-cloudinit-r0.qcow2` artifacts published at
-[dl-cdn.alpinelinux.org/alpine/latest-stable/releases/cloud/][upstream]
-and customises them via `virt-customize` for OpenStack-style
-infrastructures. Both **BIOS** (SeaBIOS) and **UEFI** (OVMF) firmware
-variants are produced.
-
-The build pipeline is shared with the rest of [`open-img-cloud`][org]:
-this repo only ships the `VERSION`, `customize.sh`, `detect-upstream.sh`,
-config files, and two thin caller workflows that delegate to the
-reusable workflows in [`open-img-cloud/.github`][shared] (`@main`).
-
-Customisations applied to the upstream rootfs:
-
-- **cloud-init** datasource list pinned to `OpenStack` + `ConfigDrive`
-  (no `NoCloud`, no `Ec2`), default user `alpine` (sudo NOPASSWD,
-  ssh-key-only, `lock_passwd: False`)
-- **qemu-guest-agent** added and enabled at boot (not in the upstream
-  image)
-- **Serial console** wired (`ttyS0,115200n8`) for cloud / hypervisor
-  consoles, including `ttyS0` in `/etc/securetty`
-- **APK cache and transient files purged** after customisation (no
-  `apk upgrade` at build time: the cloud rootfs is tightly sized;
-  patch level tracks upstream point releases via `watch.yml`)
-- **`virt-sysprep`** to clean transient state, then `virt-sparsify --compress`
-
-Each release publishes:
-
-- `alpine-<version>-{bios,uefi}-x86_64.qcow2`
-- `*.sha256`, `*.sha1`, `*.md5` per-file
-- `*.bundle` cosign sigstore-bundle (signature + cert + Rekor proof)
-- `MANIFEST-bios.json` + `MANIFEST-uefi.json` (per-variant build metadata,
-  including the builder image digest used to produce the qcow2)
-- `index.html` directory listing
-
-## Where to download
-
-Public CDN, served via Cloudflare in front of an R2 bucket (mirror of
-the source-of-truth Garage):
-
-| URL pattern                                                                            | Cache policy                  |
-|----------------------------------------------------------------------------------------|-------------------------------|
-| `https://images.openimages.cloud/alpine-linux/<version>/<filename>`                    | `max-age=31536000, immutable` |
-| `https://images.openimages.cloud/alpine-linux/latest/<filename>`                       | `max-age=300`                 |
-
-Browse: [images.openimages.cloud/alpine-linux/latest/][latest]
-
-## Verify before deploy
-
-cosign 3.x:
+## Quick start
 
 ```sh
-sha256sum -c <filename>.sha256                    # integrity
-cosign verify-blob \
-    --bundle <filename>.bundle \
-    --new-bundle-format \
-    --certificate-identity-regexp '^https://github.com/open-img-cloud/\.github/\.github/workflows/build-libguestfs-image\.yml@' \
-    --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-    <filename>                                     # provenance
+# Pick the variant: bios or uefi
+VARIANT=bios
+# Latest version and its file name, from the signed manifest of that variant
+M=https://images.openimages.cloud/alpine-linux/latest/MANIFEST-$VARIANT.json
+V=$(curl -fsS $M | jq -r .version); F=$(curl -fsS $M | jq -r .filename)
+curl -fLO https://images.openimages.cloud/alpine-linux/$V/$F
 ```
 
-The certificate identity points at the **reusable** build workflow in
-`open-img-cloud/.github`: that's where GitHub's OIDC binds the SAN for
-keyless signing, regardless of which caller repo (`alpaquita-linux`,
-`alpine-linux`, …) invoked it. To tie the artifact back to *this* repo's
-commit, also check `MANIFEST-<variant>.json`: it pins the caller `commit`
-SHA, the workflow run URL, and the builder image digest. A successful
-`Verified OK` plus a matching MANIFEST proves the qcow2 was produced by
-the open-img-cloud shared pipeline from the listed alpine-linux commit.
+<details>
+<summary><b>OpenStack</b></summary>
 
-## How to use
-
-### OpenStack
+BIOS variant:
 
 ```sh
-# Pull the qcow2 (replace <V> with the desired version, e.g. 3.23.4)
-curl -fLO https://images.openimages.cloud/alpine-linux/<V>/alpine-<V>-bios-x86_64.qcow2
-
-openstack image create \
-    --disk-format qcow2 --container-format bare \
-    --file alpine-<V>-bios-x86_64.qcow2 \
-    'Alpine Linux (BIOS) <V>'
+openstack image create --disk-format qcow2 --container-format bare \
+  --property os_distro=alpinelinux --property os_version="${V%.*}" \
+  --property hw_qemu_guest_agent=yes --property os_admin_user=alpine \
+  --file "$F" "Alpine Linux $V (BIOS)"
 ```
 
-For UEFI hosts (newer OpenStack with OVMF, or `hw_firmware_type=uefi`),
-use the `-uefi-` variant and set the image property:
+UEFI variant: same command, plus the firmware property:
 
 ```sh
-openstack image create \
-    --disk-format qcow2 --container-format bare \
-    --file alpine-<V>-uefi-x86_64.qcow2 \
-    --property hw_firmware_type=uefi \
-    'Alpine Linux (UEFI) <V>'
+openstack image create --disk-format qcow2 --container-format bare \
+  --property os_distro=alpinelinux --property os_version="${V%.*}" \
+  --property hw_qemu_guest_agent=yes --property os_admin_user=alpine \
+  --property hw_firmware_type=uefi \
+  --file "$F" "Alpine Linux $V (UEFI)"
 ```
 
-### Proxmox VE
+The full property set (SCSI disk, multiqueue, quiesced snapshots) is on the
+[catalog page](https://openimages.cloud/images/alpine-linux/) and in
+[`index.json`](https://images.openimages.cloud/index.json). To keep images up to date
+automatically, use [oic-sync](https://github.com/open-img-cloud/oic-sync).
+
+</details>
+
+<details>
+<summary><b>Proxmox VE</b></summary>
+
+The commands to create a cloud-init template from this image are on the
+[catalog page](https://openimages.cloud/images/alpine-linux/). For the `uefi` variant, the VM
+needs OVMF firmware (`--bios ovmf` and an EFI disk).
+
+</details>
+
+<details>
+<summary><b>Verify the signature</b></summary>
 
 ```sh
-# Copy to Proxmox host
-scp alpine-<V>-bios-x86_64.qcow2 root@proxmox:/var/lib/vz/template/iso/
-
-# On Proxmox: create a cloud-init template from the disk (BIOS / SeaBIOS)
-qm create <VMID> --name alpine-template --memory 1024 --cores 2 --net0 virtio,bridge=vmbr0
-qm importdisk <VMID> alpine-<V>-bios-x86_64.qcow2 <STORAGE>
-qm set <VMID> --scsihw virtio-scsi-pci --scsi0 <STORAGE>:vm-<VMID>-disk-0
-qm set <VMID> --boot c --bootdisk scsi0
-qm set <VMID> --ide2 <STORAGE>:cloudinit
-qm set <VMID> --serial0 socket --vga serial0
-qm set <VMID> --ciuser alpine --sshkeys ~/.ssh/authorized_keys --ipconfig0 ip=dhcp
+curl -fLO https://images.openimages.cloud/alpine-linux/$V/$F.bundle
+cosign verify-blob "$F" --bundle "$F.bundle" \
+  --certificate-identity-regexp '^https://github.com/open-img-cloud/\.github/\.github/workflows/build-(libguestfs|dib|nix-flake|freebsd)-image\.yml@' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```
 
-For UEFI templates (q35 + OVMF), use the `-uefi-` variant and add
-`--bios ovmf --efidisk0 <STORAGE>:0,efitype=4m,pre-enrolled-keys=0` to
-the `qm create`/`qm set` commands.
+</details>
 
-## Release flow
+## What this image changes
 
-1. **`watch.yml`** runs daily 06:23 UTC, calls `build/detect-upstream.sh`
-   which scrapes the highest semver `X.Y.Z` from the `cloud/` directory
-   listing.
-2. If the version differs from the current `VERSION`, the workflow opens
-   (or updates) a PR `auto/upstream-bump`.
-3. Merging the PR + pushing a `v<VERSION>` tag fires `release.yml`,
-   which calls the shared `build-libguestfs-image.yml@main` reusable
-   workflow once per `firmware` (`bios`, `uefi`).
-4. Each build downloads the upstream qcow2, runs `customize.sh`,
-   sysprep, sparsify, signs, and uploads to Garage + R2 under
-   `s3://alpine-linux/<version>/`. The `latest/` alias is replaced and
-   Cloudflare cache for `latest/` is purged.
+On top of the official image, and nothing else:
 
-## Repository layout
+- installs and enables `qemu-guest-agent` (filesystem freeze for snapshots, IP reporting);
+- sets dhcpcd to `slaac hwaddr` instead of `slaac private`: Neutron only accepts the
+  MAC-derived link-local address and finds the port from it, so with the default the instance
+  never gets the IPv6 address of its port;
+- adds an SSH drop-in that turns off password and keyboard-interactive authentication;
+- enables a login on the serial console (`ttyS0`);
+- adds the openimages.cloud cloud-init policy: config drive read first, then the metadata
+  service; no root login, no SSH password;
+- cleans package caches and machine identity so every instance starts fresh.
 
-```
-VERSION                          single line, e.g. "3.23.4"
-build/
-  customize.sh                   virt-customize hook (qcow2 path as $1)
-  detect-upstream.sh             prints latest upstream semver (highest in cloud/ listing)
-  config/
-    serial-config.sh             enables ttyS0 in inittab + securetty
-.github/workflows/
-  release.yml                    calls build-libguestfs-image.yml on tag push
-  watch.yml                      daily cron, calls upstream-watch.yml
-.gitignore                       repo-local override for global build/ exclusion
-LICENSE                          GPL-2.0
-```
+Packages are not upgraded at build time: the upstream root filesystem is sized too tightly for
+a new kernel. Security fixes arrive with each Alpine point release; run `apk upgrade` after
+deployment if you need them sooner.
 
-## Contributing
+Every release must pass the same [runtime contract](https://openimages.cloud/quality/) on
+OpenStack: SSH with the injected key, cloud-init finished, DNS, hostname, root filesystem grown,
+passwordless `sudo`, IPv6 address and egress.
 
-Fork, branch, PR. Keep changes focused; the customize hook in particular
-is consumed by the shared pipeline so backward-compatible tweaks are
-preferred over rewrites.
+## How releases happen
+
+1. Every day at 06:23 UTC a watcher looks for a new upstream image and opens a pull request
+   that bumps [`VERSION`](VERSION).
+2. Merging it is all it takes: the release is tagged, both variants are built, signed,
+   boot-tested and published, then `latest/` and the [catalog](https://openimages.cloud/images/)
+   move to it.
+
+This repository only holds what is specific to Alpine Linux: [`VERSION`](VERSION),
+[`build/customize.sh`](build/customize.sh), [`build/config/`](build/config),
+[`build/detect-upstream.sh`](build/detect-upstream.sh) and thin workflows calling the shared
+pipeline in [`open-img-cloud/.github`](https://github.com/open-img-cloud/.github).
 
 ## License
 
-Distributed under the GPL-2.0 License. See `LICENSE`.
-
-## Contact
-
-Kevin Allioli · kevin@stackops.ch · [@stackopshq](https://twitter.com/stackopshq)
-
-Project: [open-img-cloud/alpine-linux](https://github.com/open-img-cloud/alpine-linux)
-
-[alpine]: https://www.alpinelinux.org/
-[upstream]: https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/cloud/
-[org]: https://github.com/open-img-cloud
-[shared]: https://github.com/open-img-cloud/.github
-[latest]: https://images.openimages.cloud/alpine-linux/latest/
-
-<!-- shields -->
-[contributors-shield]: https://img.shields.io/github/contributors/open-img-cloud/alpine-linux.svg?style=for-the-badge
-[contributors-url]: https://github.com/open-img-cloud/alpine-linux/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/open-img-cloud/alpine-linux.svg?style=for-the-badge
-[forks-url]: https://github.com/open-img-cloud/alpine-linux/network/members
-[stars-shield]: https://img.shields.io/github/stars/open-img-cloud/alpine-linux.svg?style=for-the-badge
-[stars-url]: https://github.com/open-img-cloud/alpine-linux/stargazers
-[issues-shield]: https://img.shields.io/github/issues/open-img-cloud/alpine-linux.svg?style=for-the-badge
-[issues-url]: https://github.com/open-img-cloud/alpine-linux/issues
-[license-shield]: https://img.shields.io/github/license/open-img-cloud/alpine-linux.svg?style=for-the-badge
-[license-url]: https://github.com/open-img-cloud/alpine-linux/blob/main/LICENSE
+The build tooling in this repository is under [GPL-2.0](LICENSE). The image keeps the licensing
+terms of Alpine Linux (each package under its own license). Alpine Linux is a trademark of its
+owner; this project is not affiliated with Alpine Linux.
